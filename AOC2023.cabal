@@ -27,6 +27,7 @@ library
   exposed-modules:
       Common
       Day01
+      Day02
       Lib
   other-modules:
       Paths_AOC2023
