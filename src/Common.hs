@@ -17,7 +17,8 @@ module Common
     addCoordinates,
     loadAndAddCoords,
     readUserName',
-    main2
+    main2,
+    loadApplyPrint
   )
 where
 
@@ -25,6 +26,7 @@ import Data.Char (toUpper)
 import Data.List (transpose)
 import Data.List.Split
 import Control.Monad.Trans.Maybe
+import GHC.IO.Exception (IOException(ioe_filename))
 
 main2 :: IO ()
 main2 = do
@@ -97,3 +99,11 @@ addCoordinates ls = zip coordlist chars
 
 loadAndAddCoords :: String -> IO [((Int, Int), Char)]
 loadAndAddCoords filename = addCoordinates <$> splitLines filename
+
+
+
+loadApplyPrint :: Show a => FilePath -> ([String] -> a) -> IO ()
+loadApplyPrint filep f = do
+  input <- readFile filep
+  let linesInput = lines input 
+  print $ f linesInput

@@ -25,13 +25,6 @@ packages:
       size: 3077
   original:
     hackage: hindent-6.0.0
-- completed:
-    hackage: hlint-3.4.1@sha256:e97bf4d5bac99742fc9451fc3782c709c4b9c0925cfe6299f3e9045b9e73aae5,4589
-    pantry-tree:
-      sha256: 00cafd1d495705e4dd60061bd4ddfa7d00c138a1839e0185090e56287e0bf119
-      size: 5863
-  original:
-    hackage: hlint-3.4.1
 snapshots:
 - completed:
     sha256: 63539429076b7ebbab6daa7656cfb079393bf644971156dc349d7c0453694ac2
