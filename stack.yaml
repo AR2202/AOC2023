@@ -44,8 +44,7 @@ extra-deps:
   -  hfmt-0.3.0.0
   - stylish-haskell-0.14.4.0
   -  hindent-6.0.0
-  - hlint-3.4.1
-
+  
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
