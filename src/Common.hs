@@ -18,12 +18,16 @@ module Common
     loadAndAddCoords,
     readUserName',
     main2,
-    loadApplyPrint
+    loadApplyPrint,
+    neighbors,
+    rstrip,
+    lstrip,
+    addCoordinatest
   )
 where
 
 import Data.Char (toUpper)
-import Data.List (transpose)
+import Data.List (transpose, isSuffixOf, isPrefixOf)
 import Data.List.Split
 import Control.Monad.Trans.Maybe
 import GHC.IO.Exception (IOException(ioe_filename))
@@ -97,6 +101,12 @@ addCoordinates ls = zip coordlist chars
     coordlist = makeCoordinates ((length . head) ls) (length ls)
     chars = (concat . transpose) ls
 
+addCoordinatest :: [String] -> [((Int, Int), Char)]
+addCoordinatest ls = zip coordlist chars
+  where
+    coordlist = makeCoordinates ((length . head) ls) (length ls)
+    chars = concat  ls
+
 loadAndAddCoords :: String -> IO [((Int, Int), Char)]
 loadAndAddCoords filename = addCoordinates <$> splitLines filename
 
@@ -107,3 +117,14 @@ loadApplyPrint filep f = do
   input <- readFile filep
   let linesInput = lines input 
   print $ f linesInput
+
+neighbors :: (Num a, Num b, Enum a, Enum b) => (a, b) -> [(a, b)]
+neighbors (x,y) = [(x1,y1)|x1<-[x-1..x+1],y1<-[y-1..y+1]]
+
+rstrip :: Eq a => [a] -> [a] -> [a]
+rstrip c s =
+  if c `isSuffixOf` s then init s else s 
+
+lstrip :: Eq a => [a] -> [a] -> [a]
+lstrip c s =
+  if c `isPrefixOf` s then tail s else s 
