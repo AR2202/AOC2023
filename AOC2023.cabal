@@ -28,6 +28,8 @@ library
       Common
       Day01
       Day02
+      Day03
+      Day04
       Lib
   other-modules:
       Paths_AOC2023
