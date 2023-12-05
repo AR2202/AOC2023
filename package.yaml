@@ -28,6 +28,7 @@ dependencies:
 - hmatrix
 - transformers
 - text
+- extra
 
 ghc-options:
 - -Wall

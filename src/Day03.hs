@@ -21,7 +21,7 @@ extractSnd = (map . map) snd
 day3 = loadApplyPrint "input/Day03.txt"
 
 day3a :: IO ()
-day3a = day3 numsWithSymbNeighbors
+day3a = day3 numsWithSymbNeighbors''
 
 withCoords :: [[Char]] -> [((Int, Int), Char)]
 withCoords = addCoordinatest
@@ -45,7 +45,7 @@ numsWithSymbNeighbors s = (sum .  map read . extractSnd . filter (any (hasSymbol
 
 
 --numsWithSymbNeighbors'' ::  [[Char]] -> [Int]
-numsWithSymbNeighbors'' s = (  filter (any (hasSymbolNeighbor symmap)) . extractNums . withCoords) s
+numsWithSymbNeighbors'' s = ( extractSnd . filter (any (hasSymbolNeighbor symmap)) .extractNums . withCoords) s
   where
     symmap = makeMap s
 
