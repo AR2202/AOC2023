@@ -30,6 +30,7 @@ library
       Day02
       Day03
       Day04
+      Day05
       Lib
   other-modules:
       Paths_AOC2023
@@ -41,6 +42,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , extra
     , hmatrix
     , parsec
     , split
@@ -62,6 +64,7 @@ executable AOC2023-exe
       AOC2023
     , base >=4.7 && <5
     , containers
+    , extra
     , hmatrix
     , parsec
     , split
@@ -84,6 +87,7 @@ test-suite AOC2023-test
       AOC2023
     , base >=4.7 && <5
     , containers
+    , extra
     , hmatrix
     , parsec
     , split
