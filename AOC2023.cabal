@@ -31,6 +31,7 @@ library
       Day03
       Day04
       Day05
+      Day06
       Lib
   other-modules:
       Paths_AOC2023
