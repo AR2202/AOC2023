@@ -22,7 +22,8 @@ module Common
     neighbors,
     rstrip,
     lstrip,
-    addCoordinatest
+    addCoordinatest,
+    addCoordinatesswap
   )
 where
 
@@ -95,6 +96,10 @@ capitalize (x : xs) = toUpper x : xs
 makeCoordinates :: Int -> Int -> [(Int, Int)]
 makeCoordinates x y = (,) <$> [1 .. x] <*> [1 .. y]
 
+swap :: (b, a) -> (a, b)
+swap (x,y) = (y,x)
+makeCoordinatesSwap :: Int -> Int -> [(Int, Int)]
+makeCoordinatesSwap x y  = map swap $ makeCoordinates x y 
 addCoordinates :: [String] -> [((Int, Int), Char)]
 addCoordinates ls = zip coordlist chars
   where
@@ -106,7 +111,11 @@ addCoordinatest ls = zip coordlist chars
   where
     coordlist = makeCoordinates ((length . head) ls) (length ls)
     chars = concat  ls
-
+addCoordinatesswap :: [String] -> [((Int, Int), Char)]
+addCoordinatesswap ls = zip coordlist chars
+  where
+    coordlist = makeCoordinatesSwap ((length . head) ls) (length ls)
+    chars = concat  ls
 loadAndAddCoords :: String -> IO [((Int, Int), Char)]
 loadAndAddCoords filename = addCoordinates <$> splitLines filename
 
