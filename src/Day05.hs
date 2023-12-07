@@ -54,12 +54,11 @@ day5b = do
   let seeds :: [Int] = map read $ splitOn (" ") $ drop 2 $ L.dropWhile (/= ':') $ head inp
   let ranges = toRanges seeds
   let seedRanges = findRanges ranges
-  let allSeeds = concatMap range2list seedRanges
+  --let allSeeds = concatMap range2list seedRanges
 
   let maps :: [[(Int, Int, Int)]] = reverse $ map (map (list2triplep2 . map read . splitOn (" ")) . tail . lines) $ tail inp
- 
-  let locmin = findSeeds 0 maps allSeeds
 
+  let locmin = findSeeds 0 maps seedRanges
 
   print locmin
 
@@ -76,6 +75,10 @@ findRanges (x : xs) = (fst x, fst x + (maximum . map snd . filter inXRange) (x :
 range2list :: (Num a, Enum a) => (a, a) -> [a]
 range2list (x, y) = [x .. y - 1]
 
-findSeeds location maps seedRanges 
-    | (foldl' (flip  inAnyRange) location maps)`elem` seedRanges = location
-    | otherwise = findSeeds (location+1) maps seedRanges
+isBetween :: Ord a => a -> (a, a) -> Bool
+isBetween x (y, z) = (x >= y) && (x<z)
+
+
+findSeeds location maps seedRanges
+  | any (isBetween (foldl' (flip inAnyRange) location maps) ) seedRanges = location
+  | otherwise = findSeeds (location + 1) maps seedRanges
