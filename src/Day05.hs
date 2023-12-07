@@ -28,6 +28,9 @@ day5a = do
 list2triple :: [c] -> (c, c, c)
 list2triple (x : y : z : zs) = (y, x, z)
 
+list2triplep2 :: [c] -> (c, c, c)
+list2triplep2 (x : y : z : zs) = (x, y, z)
+
 -- part 1
 inRange :: (Ord a, Num a) => a -> a -> a -> a -> Maybe a
 inRange seed source target nums
@@ -50,13 +53,13 @@ day5b = do
   inp <- splitOnBlankLine "Day05.txt"
   let seeds :: [Int] = map read $ splitOn (" ") $ drop 2 $ L.dropWhile (/= ':') $ head inp
   let ranges = toRanges seeds
-  let allSeeds = concatMap range2list $ findRanges ranges
+  let seedRanges = findRanges ranges
+  let allSeeds = concatMap range2list seedRanges
 
-  let maps :: [[(Int, Int, Int)]] = map (map (list2triple . map read . splitOn (" ")) . tail . lines) $ tail inp
-  let targets = foldl' allTargets allSeeds maps
-  let locmin = minimum targets
+  let maps :: [[(Int, Int, Int)]] = reverse $ map (map (list2triplep2 . map read . splitOn (" ")) . tail . lines) $ tail inp
+ 
+  let locmin = findSeeds 0 maps allSeeds
 
-  print ranges
 
   print locmin
 
@@ -72,3 +75,7 @@ findRanges (x : xs) = (fst x, fst x + (maximum . map snd . filter inXRange) (x :
 
 range2list :: (Num a, Enum a) => (a, a) -> [a]
 range2list (x, y) = [x .. y - 1]
+
+findSeeds location maps seedRanges 
+    | (foldl' (flip  inAnyRange) location maps)`elem` seedRanges = location
+    | otherwise = findSeeds (location+1) maps seedRanges
