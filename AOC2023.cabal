@@ -34,7 +34,6 @@ library
       Day06
       Day07
       Day08
-      Lib
   other-modules:
       Paths_AOC2023
   autogen-modules:
