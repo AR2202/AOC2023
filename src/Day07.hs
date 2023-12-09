@@ -1,5 +1,6 @@
 module Day07 (day7a, day7b, Hand (..), Card (..), Face (..)) where
 
+import Common (capitalize)
 import qualified Data.List as L
 import Data.Ord (comparing)
 
@@ -19,6 +20,18 @@ data Card2 = Joker | Num2 Int | Court2 Face2 deriving (Show, Eq, Ord)
 data Hand2 = High2 [Card2] | Pair2 [Card2] | TwoPair2 [Card2] | Three2 [Card2] | FullHouse2 [Card2] | Four2 [Card2] | Five2 [Card2] deriving (Show, Eq, Ord)
 
 type CardBid2 = (Hand2, Int)
+
+class CamelCard c where
+  readAsCard :: Char -> c
+
+instance CamelCard Card where
+  readAsCard = readCard
+
+instance CamelCard Card2 where
+  readAsCard = readCard2
+
+--class CamelHand c where 
+--    toHand :: c -> 
 
 day7a :: IO ()
 day7a = do
