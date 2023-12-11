@@ -24,7 +24,7 @@ day3a :: IO ()
 day3a = day3 numsWithSymbNeighbors
 
 withCoords :: [[Char]] -> [((Int, Int), Char)]
-withCoords = addCoordinatesswap
+withCoords = addCoordinates
 
 makeMap :: [[Char]] -> M.Map (Int, Int) Char
 makeMap = M.fromList . withCoords

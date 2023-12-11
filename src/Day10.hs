@@ -36,7 +36,7 @@ toConnector '-' = H
 toConnector c = read $ return c
 
 makeMap :: [String] -> LoopMap
-makeMap = fmap toConnector . M.fromList . filter ((/= '.') . snd) .addCoordinatesswap
+makeMap = fmap toConnector . M.fromList . filter ((/= '.') . snd) . addCoordinatesswap
 
 -- Part 1
 day10a :: IO ()
@@ -53,14 +53,16 @@ moveDirection (x, y) South = (x, y + 1)
 moveDirection (x, y) West = (x - 1, y)
 moveDirection (x, y) East = (x + 1, y)
 
+findLoop :: LoopMap -> S.Set (Int, Int) -> Int -> (Int, Int) -> Direction -> Maybe Int
 findLoop locationmap visited steps location direction
   | isNothing (M.lookup location locationmap) = Nothing
-  | direction `notElem` (map enterFrom . connections) (M.findWithDefault S location locationmap) = Nothing
+  | direction `notElem` entrances = Nothing
   | M.lookup location locationmap == Just S = Just (ceiling (fromIntegral steps / 2))
   | S.member location visited = Nothing
   | otherwise = findLoop locationmap (S.insert location visited) (steps + 1) newLocation newDirection
   where
-    newDirection = head $ filter (/= (enterFrom direction)) $ connections $ M.findWithDefault S location locationmap
+    entrances = (map enterFrom . connections) (M.findWithDefault S location locationmap)
+    newDirection = head $ filter (/= enterFrom direction) $ connections $ M.findWithDefault S location locationmap
     newLocation = moveDirection location newDirection
 
 findFromS :: LoopMap -> (Int, Int) -> [Direction] -> Int
