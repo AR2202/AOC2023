@@ -2,6 +2,7 @@ module Day03 (day3a) where
 
 import Common (addCoordinates, loadApplyPrint, neighbors)
 import qualified Data.List as L
+import Data.List.Split (splitOn, splitWhen)
 import qualified Data.Map as M
 
 ---Types
