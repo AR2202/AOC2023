@@ -25,6 +25,7 @@ dist2one (x,y) (x2,y2) = abs(x-x2) + abs(y-y2)
 dist2all :: Num b => (b, b) -> [(b, b)] -> [b]
 dist2all node = map (dist2one node)
 
+allDists :: Num a => [(a, a)] -> [a]
 allDists [] = []
 allDists (x:xs) = dist2all x xs ++ allDists xs
 
