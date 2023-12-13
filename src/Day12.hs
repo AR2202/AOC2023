@@ -1,38 +1,62 @@
-module Day12(day12a, print12a)
-    where
+module Day12 (day12a, day12b) where
+
+import Data.Bifunctor (bimap)
+import Data.List (foldl1')
 import Data.List.Split (splitOn, splitWhen)
-import GHC.IO.Handle (NewlineMode(inputNL))
+
 -- Part 1
 day12a :: IO ()
 day12a = do
-    input <- readFile "input/Day12.txt"
-    let inputs = separateInputs input
-    let numPossibilities = map numValidFromList inputs
-    print $ sum numPossibilities
+  input <- readFile "input/Day12.txt"
+  let inputs = separateInputs input
+  let numPossibilities = map numValidFromList inputs
+  print $ sum numPossibilities
+
 day12atest :: Int
-day12atest = numValid [1,1,3]$allPossibilities ".??..??...?##."
-print12a :: [[[Char]]]
-print12a = map (splitOn ("."))$allPossibilities".??..??...?##."
+day12atest = numValid [1, 1, 3] $ allPossibilities ".??..??...?##."
 
-allPossibilities :: String-> [String]
-allPossibilities s = allPossibilities' (reverse s) [""] 
-    where allPossibilities' "" possibilities = possibilities
-          allPossibilities' ('?':cs) possibilities = allPossibilities' cs (appendBoth possibilities) 
-          allPossibilities' (x:xs) possibilities = allPossibilities' xs (map (x:) possibilities )
-          appendBoth possibilities =   map ('#' :) possibilities ++ map ('.':) possibilities 
+allPossibilities :: String -> [String]
+allPossibilities s = allPossibilities' (reverse s) [""]
+  where
+    allPossibilities' "" possibilities = possibilities
+    allPossibilities' ('?' : cs) possibilities = allPossibilities' cs (appendBoth possibilities)
+    allPossibilities' (x : xs) possibilities = allPossibilities' xs (map (x :) possibilities)
+    appendBoth possibilities = map ('#' :) possibilities ++ map ('.' :) possibilities
 
-filterValid :: [Int] -> [[Char]] -> [[Int]]
-filterValid list strs = filter (==list)$(map .map) length $ map (filter (/="")) $ map (splitOn (".")) strs 
+filterValid :: [[Char]] -> [Int] -> [[Int]]
+filterValid strs list = filter (== list) $ (map . map) length $ map (filter (/= "")) $ map (splitOn (".")) strs
 
-filterValidFromList l = filterValid ((parseNumList . last) l) ((allPossibilities . head) l)
+filterValidFromList l = filterValid ((allPossibilities . head) l) ((parseNumList . last) l)
 
 numValid :: [Int] -> [[Char]] -> Int
-numValid list = length . filterValid list
+numValid ls = length . (`filterValid` ls)
 
-numValidFromList = length. filterValidFromList
+numValidFromList = length . filterValidFromList
+
 -- reading input
 separateInputs :: String -> [[String]]
-separateInputs = map words . lines 
+separateInputs = map words . lines
 
 parseNumList :: [Char] -> [Int]
 parseNumList = map read . splitOn ","
+
+-- Part2
+day12b :: IO ()
+day12b = do
+  input <- readFile "input/Day12.txt"
+  let inputs = separateInputs input
+  let numPossibilities = map numValidFromListPart2 inputs
+  print $ sum numPossibilities
+
+unfoldInput s = foldl1' (\acc l -> acc ++ ('?' : l)) $ replicate 5 s
+
+unfoldNums :: [a] -> [a]
+unfoldNums = concat . replicate 5
+
+unfoldBoth :: String -> ([Char], [Int])
+unfoldBoth s = ((unfoldInput . head . words) s, (unfoldNums . parseNumList . last . words) s)
+
+mapAllPossibilities :: (String, d) -> ([String], d)
+mapAllPossibilities = bimap allPossibilities id
+
+numValidFromListPart2 ls = fromIntegral (numValidFromList ls) ** 5 * 2 ** 4
