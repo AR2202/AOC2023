@@ -1,4 +1,4 @@
-module Day16 (day16a) where
+module Day16 (day16a, day16b) where
 
 import Common (addCoordinates)
 import qualified Data.Map as M
@@ -9,13 +9,28 @@ import Debug.Trace(trace)
 
 data Direction = Up | Down | L | R deriving (Show, Eq, Ord)
 
+day16b :: IO ()
+day16b = do
+    let startsL = zip (zip (repeat 0)[1..110]) (repeat R)
+    let startsR = zip (zip (repeat 111)[1..110]) (repeat L)
+    let startsU = zip (zip [1..110](repeat 0)) (repeat Down)
+    let startsD = zip (zip [1..110](repeat 111)) (repeat Up)
+    let starts = startsL ++ startsR ++ startsU ++ startsD
+    day16 starts >>= print
+
 day16a :: IO ()
-day16a = do
+day16a = day16 [((0,1),R)]>>= print
+
+
+
+day16 ::[ ((Int, Int), Direction)] -> IO Int
+day16 starts = do
   input <- readFile "input/Day16.txt"
   let withCoords = makeCoordMap input
-  let energized = allBeamsMove withCoords [((1, 1), Down)] S.empty
+  let enter = map (oneMove withCoords) starts
+  let energized = map (allBeamsMove withCoords  S.empty )enter
   -- print energized
-  print $ length energized
+  return $maximum$ map length energized
 
 move :: (Num a1, Num a2) => Direction -> (a1, a2) -> (a1, a2)
 move R (x, y) = (x + 1, y)
@@ -51,6 +66,6 @@ oneMove m (coord, direction) =  zip (repeat newCoord) newDirections
       Nothing -> []
       Just symb -> splitBeam symb direction
 
-allBeamsMove :: M.Map (Int, Int) Char -> [((Int, Int), Direction)] -> S.Set ((Int, Int), Direction) -> S.Set (Int, Int)
-allBeamsMove m [] energized = S.map fst energized
-allBeamsMove m beams energized = allBeamsMove m (concatMap (oneMove m) (filter (not . (`S.member` energized)) beams)) (S.union energized $ S.fromList beams)
+
+allBeamsMove m energized []  = S.map fst energized
+allBeamsMove m  energized beams = allBeamsMove m (S.union energized $ S.fromList beams)(concatMap (oneMove m) (filter (not . (`S.member` energized)) beams)) 
