@@ -26,6 +26,8 @@ type Workflows = M.Map String Workflow
 
 data Part = Part {_x :: Int, _m :: Int, _a :: Int, _s :: Int} deriving (Show, Read, Eq)
 
+data PartConstraints = PartConstraints {_xmin :: Int, _xmax :: Int, _mmin:: Int, _mmax :: Int, _amin:: Int, _amax :: Int, _smin :: Int, _smax :: Int}deriving (Show, Read, Eq)
+
 instance Show Rule where
   show r = "Rule { " ++ "_partProperty:" ++ show1 (_partProperty r) ++ ",_condition:" ++ show2 (_condition r) ++ ",_ontrue:" ++ show (_ontrue r) ++ "}"
     where
@@ -120,7 +122,9 @@ partParser = Part <$> xParser <*> mParser <*> aParser <*> sParser
 parseWorkflows str = M.fromList <$> traverse (parse workflowParser "text" . T.pack) (lines str)
 
 parseParts str = traverse (parse partParser "text" . T.pack) (lines str)
-
+-- Part 2
+sortPartsOneWorkflow :: Workflow -> PartConstraints -> [(Action, PartConstraints)]
+sortPartsOneWorkflow (rule:rules) parts = undefined
 -- Test Cases
 test19a = applyAllWorkflows testPart1 testmap
 

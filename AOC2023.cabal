@@ -44,6 +44,7 @@ library
       Day16
       Day18
       Day19
+      Day21
   other-modules:
       Paths_AOC2023
   autogen-modules:
