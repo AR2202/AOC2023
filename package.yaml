@@ -29,6 +29,7 @@ dependencies:
 - transformers
 - text
 - extra
+- lens
 
 ghc-options:
 - -Wall

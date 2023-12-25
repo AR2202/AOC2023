@@ -44,7 +44,9 @@ library
       Day16
       Day18
       Day19
+      Day20
       Day21
+      Day24
   other-modules:
       Paths_AOC2023
   autogen-modules:
@@ -57,6 +59,7 @@ library
     , containers
     , extra
     , hmatrix
+    , lens
     , parsec
     , split
     , text
@@ -79,6 +82,7 @@ executable AOC2023-exe
     , containers
     , extra
     , hmatrix
+    , lens
     , parsec
     , split
     , text
@@ -102,6 +106,7 @@ test-suite AOC2023-test
     , containers
     , extra
     , hmatrix
+    , lens
     , parsec
     , split
     , text
