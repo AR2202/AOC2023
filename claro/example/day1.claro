@@ -1,0 +1,38 @@
+
+var linesExample = ["1abc2",
+                    "pqr3stu8vwx",
+                    "a1b2c3d4e5f",
+                    "treb7uchet"];
+consumer sumDigits(lines:[string] ) {
+    var sumInts = 0;
+    var digits = {'1','2','3','4','5','6','7','8','9','0'};
+
+    for (line in lines){
+        var firstDigit = 's';
+        var lastDigit = 'l';
+        for (l in strings::splitChars(line)) {
+        if (l in digits ){ 
+            
+            if (firstDigit == 's'){        
+                firstDigit = l;
+            }
+            lastDigit = l;
+            
+
+        }
+    
+    }
+    var i = ints::parseInt(strings::join("",[strings::fromChar(firstDigit),strings::fromChar(lastDigit)]));
+    if (i instanceof int) {
+    sumInts = sumInts + i;
+    }
+    }
+    print(sumInts);
+}
+print("day1 example");
+sumDigits(linesExample);
+print("day1 part1");
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n")
+  |> sumDigits(^);
