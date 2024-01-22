@@ -1,11 +1,12 @@
 module Day18 (day18aTest, day18a) where
 
-import Common (lstrip, rstrip)
+import Common (lstrip, rstrip, neighbors)
 import qualified Data.IntMap as IM
 import Data.List (foldl')
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Tuple.Extra (uncurry3)
+import Text.Parsec (label)
 
 -- Types
 type Color = String
@@ -26,7 +27,7 @@ day18a = do
   let digInst = parseDigInstructions input
   let digstate = followDigMap digInst
 
-  print $length $allInternal(_digMap digstate) (_yMap digstate)
+  print $length $removeConnected2Outside $allInternal(_digMap digstate) (_yMap digstate)
 
 initialDigState :: DigState
 initialDigState = DigState (0, 0) M.empty (IM.singleton 0 [0]) (IM.singleton 0 [0])
@@ -81,3 +82,13 @@ minKey intmap = head $ IM.keys intmap
 maxKey intmap = last $ IM.keys intmap
 
 allInternal xmap ymap = filter (\coord -> isInside coord xmap ymap) $ [(x, y) | x <- [minKey xmap .. maxKey xmap], y <- [minKey ymap .. maxKey ymap]]
+
+allNeighboursInList l coord  = all (`elem` l) (neighbors coord)
+  where neighbors (x,y) = [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]
+
+filterInternal l = filter (allNeighboursInList l) l  
+
+removeConnected2Outside [] =[]
+removeConnected2Outside l 
+  |length l == length (filterInternal l) = l 
+  |otherwise = removeConnected2Outside (filterInternal l)
