@@ -1,0 +1,113 @@
+
+function neighbors(coord:tuple<int,int>) -> mut [tuple<int,int>]{
+    var x = coord[0];
+    var y = coord[1];
+    var neighborCoords =  [[(xn, yn) | xn in [x-1, x, x+1]]|yn in [y-1,y,y+1]];
+
+    return concat(neighborCoords);
+}
+
+function concat<T>(l:[[T]]) -> mut[T]{
+    var concatlist :mut[T] = mut [];
+    for (sublist in l){
+        
+        _ = lists::addAll(concatlist,sublist);
+    }
+    return concatlist;
+}
+
+function neighborNums(coord:tuple<int,int>, ind2NumMap: mut { tuple<int, int>: int}, num2IntMap: mut {int: int}) -> mut{int}{
+    var neighborCoords = neighbors(coord);
+    var coordsCheck: mut {int} = sets::emptyMutSet();
+    for (neighborCoord in neighborCoords){
+        if (neighborCoord in ind2NumMap){
+            var i = ind2NumMap[neighborCoord];
+           if (i in num2IntMap){
+                _ = sets::add(coordsCheck, num2IntMap[i]);
+           }
+        }
+    }
+    return coordsCheck;
+}
+function setMut2List<T>(s: mut {T})->[T]{
+    var listFromSet = [x|x in s];
+    return listFromSet;
+}
+
+
+consumer gearNumber(lines:[string] ){
+    var digits = {'1','2','3','4','5','6','7','8','9','0'};
+    var ind2Num: mut { tuple<int, int>: int} = mut {};
+    var num2Int: mut {int: int} = mut {};
+
+    var gears: mut { tuple<int, int>} = sets::emptyMutSet();
+    var currNum = 0;
+    var lineindex = 0;
+    var charindex : int;
+    for (line in lines){
+        lineindex ++;
+        charindex = 0;
+
+            var digitlist :mut[string] = mut[];
+
+            for (c in strings::splitChars(line)) {
+                charindex ++;
+            if (c in digits ){ 
+                
+                if (len(digitlist) == 0){
+                    currNum ++;
+                    
+                }
+                lists::add(digitlist, strings::fromChar(c));
+                ind2Num[(charindex,lineindex)] = currNum;
+
+            }
+            
+            else{
+                if (len(digitlist) > 0){
+                    var immutableDigitlist : [string]= [x | x in digitlist];
+                    var currInt =  ints::parseInt(strings::join("",immutableDigitlist));
+                    if (currInt instanceof int){
+                        num2Int[currNum] = currInt;
+                    }
+                    digitlist = mut [];
+
+                    
+                }
+                if (c =='*'){
+                _=sets::add(gears, (charindex, lineindex));
+                }
+            }
+                
+            }
+    }
+    var neighborlists:[[int]] = [setMut2List(neighborNums(gear,ind2Num,num2Int))|  gear in setMut2List(gears)];
+    var gearStart = 0;
+    for (neighborlist in neighborlists){
+        if (len(neighborlist)==2){
+            gearStart = gearStart + (neighborlist[0]*neighborlist[1]);
+        }
+    }
+    print(gearStart);
+}
+
+# example
+var linesExample = ["467..114..",
+                    "...*......",
+                    "..35..633.",
+                    "......#...",
+                    "617*......",
+                    ".....+.58.",
+                    "..592.....",
+                    "......755.",
+                    "...$.*....",
+                    ".664.598.."
+                    ];
+print("Example:");
+gearNumber(linesExample);
+# Day3 Part 2:
+print("Day3 Part 2:");
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n")
+  |> gearNumber(^);
