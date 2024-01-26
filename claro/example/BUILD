@@ -20,6 +20,13 @@ claro_binary(
     main_file="day3.claro",
     resources={"Input": "Day03.txt"},
 )
+
+claro_binary(
+    name="day13",
+    main_file="day13.claro",
+     resources={"Input": "day13.txt"},
+   
+)
 claro_binary(
     name="hello_world",
     main_file="hello_world.claro",
