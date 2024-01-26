@@ -1,40 +1,40 @@
 
-function listFromRange(startval:int,endval:int)->mut[int]{
+function listFromRange(startval:int, endval:int) -> mut[int]{
     var l: mut[int] = mut [];
     
     while (endval >= startval){
-        lists::add(l,startval);
-        startval++;
+        lists::add(l, startval);
+        startval ++;
 
     }
     return l;
 }
 
 #transposes a list of strings
-function transposeStrings(strs:[string])->[string]{
-    var charlists :[[char]]= [strings::splitChars(s)| s in strs];
-    var transposed = [[strings::fromChar(s[n])|s in charlists]|n in listFromRange(0,len(charlists[0])-1)];
+function transposeStrings(strs:[string]) -> [string]{
+    var charlists: [[char]] = [strings::splitChars(s)| s in strs];
+    var transposed = [[strings::fromChar(s[n])|s in charlists]|n in listFromRange(0, len(charlists[0]) - 1)];
     var transposedStrs = [strings::join("",cs)|cs in transposed];
    
     return transposedStrs;
 
 }
 
-function mapSplitLines(strs:[string])->[[string]]{
+function mapSplitLines(strs: [string]) -> [[string]]{
     return [strings::split(ls, "\n")|ls in strs];
 }
 
-function makePattern(patternlines:[string])->{int:string}{
+function makePattern(patternlines: [string]) -> {int:string}{
     return {n:patternlines[n-1]|n in listFromRange(1,len(patternlines))};
 }
 
-function findHorizontalReflectionLine(pattern:{int:string})->int{
+function findHorizontalReflectionLine(pattern: {int:string})->int{
     var testline = 1;
     var template = 1;
     var toCompare = 2;
 
     while ((template in pattern) and (toCompare in pattern)) {
-        if ( (pattern[template] == pattern[toCompare])){
+        if ((pattern[template] == pattern[toCompare])){
 
 
             toCompare ++;
@@ -54,25 +54,25 @@ function findHorizontalReflectionLine(pattern:{int:string})->int{
             return testline;
             
         }
-        else{
+        else {
             return 0;
         }
     }
 
 
-function findReflectionLine(pattern:{int:string})->int{
+function findReflectionLine(pattern:{int:string}) -> int{
     var horizontalReflection = findHorizontalReflectionLine(pattern);
-    if (horizontalReflection==0){
-        var patternlines = [val[1]|val in maps::entrySet(pattern)];
+    if (horizontalReflection == 0){
+        var patternlines = [val[1] |val in maps::entrySet(pattern)];
         var transposedPatternLines = transposeStrings(patternlines);
         var transposedPattern = makePattern(transposedPatternLines);
         return (findHorizontalReflectionLine(transposedPattern));
     }
-    else{
+    else {
         return 100 * horizontalReflection;
     }
 }
-function sumReflectionLines(patterns:[[string]])->int{
+function sumReflectionLines(patterns:[[string]]) -> int{
     var patternSum = 0;
     for (pattern in patterns){     
         patternSum = patternSum + findReflectionLine(makePattern(pattern));
@@ -83,7 +83,7 @@ function sumReflectionLines(patterns:[[string]])->int{
 
 
 # Example
-var pattern1ls:[string] =[
+var pattern1ls:[string] = [
     "#.##..##.",
     "..#.##.#.",
     "##......#",
@@ -92,7 +92,7 @@ var pattern1ls:[string] =[
     "..##..##.",
     "#.#.##.#."
 ];
-var pattern2ls:[string] =[
+var pattern2ls:[string] = [
     "#...##..#",
     "#....#..#",
     "..##..###",
@@ -101,6 +101,7 @@ var pattern2ls:[string] =[
     "..##..###",
     "#....#..#"
     ];
+    
 print("Day 13 example:");
 print(sumReflectionLines([ pattern1ls,pattern2ls]));
 # Solution
@@ -109,5 +110,5 @@ resources::Input
   |> files::readOrPanic(^)
   |> strings::split(^, "\n\n")
   |> mapSplitLines(^)
-  |>sumReflectionLines(^)
+  |> sumReflectionLines(^)
   |> print(^);
