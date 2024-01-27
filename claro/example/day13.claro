@@ -25,7 +25,7 @@ function mapSplitLines(strs: [string]) -> [[string]]{
 }
 
 function makePattern(patternlines: [string]) -> {int:string}{
-    return {n:patternlines[n-1]|n in listFromRange(1,len(patternlines))};
+    return {n:patternlines[n-1]|n in listFromRange(1, len(patternlines))};
 }
 
 function findHorizontalReflectionLine(pattern: {int:string})->int{
@@ -63,10 +63,14 @@ function findHorizontalReflectionLine(pattern: {int:string})->int{
 function findReflectionLine(pattern:{int:string}) -> int{
     var horizontalReflection = findHorizontalReflectionLine(pattern);
     if (horizontalReflection == 0){
-        var patternlines = [val[1] |val in maps::entrySet(pattern)];
-        var transposedPatternLines = transposeStrings(patternlines);
-        var transposedPattern = makePattern(transposedPatternLines);
-        return (findHorizontalReflectionLine(transposedPattern));
+        pattern
+            |> [val[1] |val in maps::entrySet(^)]
+            |> transposeStrings(^)
+            |> makePattern(^)
+            |> findHorizontalReflectionLine(^)
+            |> var verticalLine = ^;
+        return verticalLine;
+
     }
     else {
         return 100 * horizontalReflection;
@@ -101,7 +105,7 @@ var pattern2ls:[string] = [
     "..##..###",
     "#....#..#"
     ];
-    
+
 print("Day 13 example:");
 print(sumReflectionLines([ pattern1ls,pattern2ls]));
 # Solution
