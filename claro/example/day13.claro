@@ -10,6 +10,26 @@ function listFromRange(startval:int, endval:int) -> mut[int]{
     return l;
 }
 
+function reverseMut<T>(l:mut [T]) -> mut [T]{
+    var reversed : mut [T] = mut [];
+    for (i in listFromRange(1, len(l))){
+        
+        var elem = l[len(l)-i];
+        lists::add(reversed, elem);
+    }
+    return reversed;
+}
+
+function reverse<T>(l:[T]) -> mut [T]{
+    var reversed : mut [T]= mut [];
+    for (i in listFromRange(1, len(l))){
+        
+        var elem = l[len(l)-i];
+        lists::add(reversed, elem);
+    }
+    return reversed;
+}
+
 #transposes a list of strings
 function transposeStrings(strs:[string]) -> [string]{
     var charlists: [[char]] = [strings::splitChars(s)| s in strs];
@@ -36,7 +56,6 @@ function findHorizontalReflectionLine(pattern: {int:string})->int{
     while ((template in pattern) and (toCompare in pattern)) {
         if ((pattern[template] == pattern[toCompare])){
 
-
             toCompare ++;
             template --;
             }
@@ -47,8 +66,7 @@ function findHorizontalReflectionLine(pattern: {int:string})->int{
                 toCompare = template + 1;
             }
     }
-        
-        
+               
         
         if ((testline + 1) in pattern){
             return testline;
@@ -59,6 +77,69 @@ function findHorizontalReflectionLine(pattern: {int:string})->int{
         }
     }
 
+function fixSmudge(pattern: {int:string})->int{
+    var testline = 1;
+    var template = 1;
+    var toCompare = 2;
+    var repaired = false;
+    
+    
+
+    while (((template in pattern) and (toCompare in pattern)) or (not ( repaired) and ((testline + 1) in pattern ))) {
+        if (not((template in pattern) and (toCompare in pattern))){
+                testline ++;
+                template = testline;
+                toCompare = template + 1;
+                repaired = false;
+        }
+        else if ((pattern[template] == pattern[toCompare])){
+
+            toCompare ++;
+            template --;
+            }
+            
+        else if (repaired){
+                testline ++;
+                template = testline;
+                toCompare = template + 1;
+                repaired = false;
+            }
+        else {
+            var templateChars = 
+            strings::splitChars(pattern[template]);
+            var toCompareChars = strings::splitChars(pattern[toCompare]);
+            for (i in listFromRange(0, len(templateChars) - 1)){
+                if (templateChars[i] != toCompareChars[i]){
+                    if (repaired){
+                        testline ++;
+                        template = testline + 1;
+                        toCompare = testline;
+                        repaired = false;
+
+                       
+                        break;
+                    }
+                    else {
+                        repaired = true;
+                       
+                    }
+
+                }
+
+            }
+            toCompare ++;
+            template --;
+    
+        }
+    }
+        if (repaired and ((testline + 1) in pattern)){
+            return testline;
+            
+        }        
+        else {
+            return 0;
+        }
+    }
 
 function findReflectionLine(pattern:{int:string}) -> int{
     var horizontalReflection = findHorizontalReflectionLine(pattern);
@@ -69,6 +150,7 @@ function findReflectionLine(pattern:{int:string}) -> int{
             |> makePattern(^)
             |> findHorizontalReflectionLine(^)
             |> var verticalLine = ^;
+        
         return verticalLine;
 
     }
@@ -76,6 +158,26 @@ function findReflectionLine(pattern:{int:string}) -> int{
         return 100 * horizontalReflection;
     }
 }
+
+function findRepairedReflectionLine(pattern:{int:string}) -> int{
+    
+    var horizontalReflection = fixSmudge(pattern);
+    if (horizontalReflection == 0){
+        pattern
+            |> [val[1] |val in maps::entrySet(^)]
+            |> transposeStrings(^)
+            |> makePattern(^)
+            |> fixSmudge(^)
+            |> var verticalLine = ^;
+        
+        return verticalLine;
+
+    }
+    else {
+        return 100 * horizontalReflection;
+    }
+}
+
 function sumReflectionLines(patterns:[[string]]) -> int{
     var patternSum = 0;
     for (pattern in patterns){     
@@ -85,6 +187,15 @@ function sumReflectionLines(patterns:[[string]]) -> int{
     return patternSum;
 }
 
+
+function sumRepairedReflectionLines(patterns:[[string]]) -> int{
+    var patternSum = 0;
+    for (pattern in patterns){     
+        patternSum = patternSum + findRepairedReflectionLine(makePattern(pattern));
+       
+    }
+    return patternSum;
+}
 
 # Example
 var pattern1ls:[string] = [
@@ -107,12 +218,23 @@ var pattern2ls:[string] = [
     ];
 
 print("Day 13 example:");
-print(sumReflectionLines([ pattern1ls,pattern2ls]));
+print(sumReflectionLines([ pattern1ls, pattern2ls]));
+print("Day 13 example part 2:");
+print(sumRepairedReflectionLines([ pattern1ls, pattern2ls]));
+
 # Solution
-print("Day 13 Part1:");
+print("Day 13 Part 1:");
 resources::Input
   |> files::readOrPanic(^)
   |> strings::split(^, "\n\n")
   |> mapSplitLines(^)
   |> sumReflectionLines(^)
+  |> print(^);
+
+print("Day 13 Part 2:");
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n\n")
+  |> mapSplitLines(^)
+  |> sumRepairedReflectionLines(^)
   |> print(^);
