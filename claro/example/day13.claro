@@ -1,5 +1,5 @@
 
-function listFromRange(startval:int, endval:int) -> mut[int]{
+function listFromRange(startval:int, endval:int) -> [int]{
     var l: mut[int] = mut [];
     
     while (endval >= startval){
@@ -7,7 +7,8 @@ function listFromRange(startval:int, endval:int) -> mut[int]{
         startval ++;
 
     }
-    return l;
+    var immutableL : [int] = copy(l);
+    return immutableL;
 }
 
 function reverseMut<T>(l:mut [T]) -> mut [T]{
@@ -20,14 +21,15 @@ function reverseMut<T>(l:mut [T]) -> mut [T]{
     return reversed;
 }
 
-function reverse<T>(l:[T]) -> mut [T]{
-    var reversed : mut [T]= mut [];
+function reverse<T>(l:[T]) -> [T]{
+    var reversed : mut [T] = mut [];
     for (i in listFromRange(1, len(l))){
         
         var elem = l[len(l)-i];
         lists::add(reversed, elem);
     }
-    return reversed;
+    var immutableReversed :[T] = copy(reversed);
+    return immutableReversed;
 }
 
 #transposes a list of strings
