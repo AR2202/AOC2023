@@ -7,13 +7,31 @@ function neighbors(coord:tuple<int,int>) -> mut [tuple<int,int>]{
     return concat(neighborCoords);
 }
 
-function concat<T>(l:[[T]]) -> mut[T]{
-    var concatlist :mut[T] = mut [];
+function concat<T>(l: [[T]]) -> mut[T]{
+    var concatlist: mut[T] = mut [];
     for (sublist in l){
         
         _ = lists::addAll(concatlist,sublist);
     }
     return concatlist;
+}
+
+function concatMut<T>(l:  [mut[T]]) -> mut[T]{
+    var concatlist: mut [T] = mut [];
+    for (sublist in l){
+        var sublistImmutable: [T] = copy(sublist);
+        
+        _ = lists::addAll(concatlist,sublistImmutable);
+    }
+    return concatlist;
+}
+
+function flatmap<A, B>(l: [A], fn: function<A -> [B]>) -> [B] {
+  return copy(concat([fn(a) | a in l]));
+}
+
+function flatmapMut<A, B>(l: mut [A], fn: function<A -> mut [B]>) -> mut [B] {
+  return concatMut([fn(a) | a in l]);
 }
 
 function neighborNums(coord:tuple<int,int>, ind2NumMap: mut { tuple<int, int>: int}, num2IntMap: mut {int: int}) -> mut{int}{
@@ -111,3 +129,8 @@ resources::Input
   |> files::readOrPanic(^)
   |> strings::split(^, "\n")
   |> gearNumber(^);
+# test for flatmap
+print("neighbors of 2 coords:");
+var coordlist = mut [(1,1),(4,4)];
+var neighborsOfCoords = flatmapMut(coordlist, neighbors);
+print(neighborsOfCoords);
