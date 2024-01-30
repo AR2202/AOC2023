@@ -7,36 +7,48 @@ function listFromRange(startval:int, endval:int) -> [int]{
         startval ++;
 
     }
-    var immutableL : [int] = copy(l);
+    var immutableL: [int] = copy(l);
     return immutableL;
 }
 
-function reverseMut<T>(l:mut [T]) -> mut [T]{
-    var reversed : mut [T] = mut [];
+function reverseMut<T>(l: mut [T]) -> mut [T]{
+    var reversed: mut [T] = mut [];
     for (i in listFromRange(1, len(l))){
         
-        var elem = l[len(l)-i];
+        var elem = l[len(l) - i];
         lists::add(reversed, elem);
     }
     return reversed;
 }
 
-function reverse<T>(l:[T]) -> [T]{
-    var reversed : mut [T] = mut [];
+# reverse a list
+function reverse<T>(l: [T]) -> [T]{
+    var reversed: mut [T] = mut [];
     for (i in listFromRange(1, len(l))){
         
-        var elem = l[len(l)-i];
+        var elem = l[len(l) - i];
         lists::add(reversed, elem);
     }
-    var immutableReversed :[T] = copy(reversed);
+    var immutableReversed: [T] = copy(reversed);
     return immutableReversed;
 }
 
-#transposes a list of strings
+# transpose a list of lists
+function transpose<T>(listOfLists: [[T]]) -> [[T]]{
+    
+    var transposed = [[s[n] | s in listOfLists]|n in listFromRange(0, len(listOfLists[0]) - 1)];
+
+    return transposed;
+
+}
+
+# transposes a list of strings
 function transposeStrings(strs:[string]) -> [string]{
-    var charlists: [[char]] = [strings::splitChars(s)| s in strs];
-    var transposed = [[strings::fromChar(s[n])|s in charlists]|n in listFromRange(0, len(charlists[0]) - 1)];
-    var transposedStrs = [strings::join("",cs)|cs in transposed];
+    var charlists: [[char]] = [strings::splitChars(s) | s in strs];
+    var transposed = transpose(charlists);
+    var char2str: function<char -> string> = x -> strings::fromChar(x);
+    var transposedAsStr : [[string]] = [fp::map(l, char2str) | l in transposed];
+    var transposedStrs = [strings::join("", cs) | cs in transposedAsStr];
    
     return transposedStrs;
 
