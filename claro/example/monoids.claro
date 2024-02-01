@@ -1,0 +1,95 @@
+# playing with Contracts - Defining a Monoid
+newtype Sum: int
+newtype Prod: int 
+
+contract Monoid<X> {
+    function mappend(m1: X, m2: X) -> X;
+    provider mempty()-> X;
+    
+}
+# unfortunately, this is not generic over the List element type
+implement Monoid<[int]> {
+    function mappend(m1: [int], m2: [int]) -> [int] {
+            return copy(concat([m1,m2]));
+        }
+    provider mempty()->[int]{
+        return [];
+    }
+}
+
+implement Monoid<[string]> {
+    function mappend(m1: [string], m2: [string]) -> [string] {
+            return copy(concat([m1,m2]));
+        }
+    provider mempty()->[string]{
+        return [];
+    }
+}
+
+
+implement Monoid<string> {
+    function mappend(m1: string, m2: string) -> string {
+            return strings::join("",[m1,m2]);
+        }
+    provider mempty()->string{
+        return "";
+    }
+}
+
+
+implement Monoid<Sum>  {
+    function mappend (m1: Sum, m2: Sum) -> Sum {
+        return Sum(unwrap(m1) + unwrap(m2));
+    }
+    provider mempty()->Sum{
+        return Sum(0);
+    }
+}
+
+implement Monoid<Prod> {
+    function mappend (m1: Prod, m2: Prod) -> Prod {
+        return Prod(unwrap(m1) * unwrap(m2));
+    }
+    provider mempty()->Prod{
+        return Prod(1);
+    }
+}
+
+function concat<T>(l: [[T]]) -> mut[T]{
+    var concatlist: mut[T] = mut [];
+    for (sublist in l){
+        
+        _ = lists::addAll(concatlist,sublist);
+    }
+    return concatlist;
+}
+
+print("An additive Monoid");
+print("Sum(2) + Sum(3):");
+print(Monoid::mappend(Sum(2), Sum(3)));
+print("With the unit element:");
+var unitSum: Sum = Monoid::mempty();
+print(unitSum);
+print("A multiplicative Monoid");
+print("Sum(2) * Sum(3):");
+print(Monoid::mappend(Prod(2), Prod(3)));
+print("With the unit element:");
+var unitProd: Prod = Monoid::mempty();
+print(unitProd);
+print("A List Monoid");
+print("Monoid::mappend([1,2],[3,4])");
+print(Monoid::mappend([1,2],[3,4]));
+print("With the unit element:");
+var unitList: [int] = Monoid::mempty();
+print(unitList);
+print("Monoid::mappend([\"hello\"],[\"world\"])");
+print(Monoid::mappend(["hello"],["world"]));
+print("With the unit element:");
+var unitListString: [string] = Monoid::mempty();
+print(unitListString);
+print("A string Monoid");
+print("Monoid::mappend(\"hello \",\"world\")");
+print(Monoid::mappend("hello ", "world"));
+print("With the unit element:");
+var unitString: string = Monoid::mempty();
+print(unitString);

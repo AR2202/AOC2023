@@ -27,6 +27,12 @@ claro_binary(
      resources={"Input": "day13.txt"},
    
 )
+
+claro_binary(
+    name="monoids",
+    main_file="monoids.claro",
+    
+)
 claro_binary(
     name="hello_world",
     main_file="hello_world.claro",
