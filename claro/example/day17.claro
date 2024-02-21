@@ -2,6 +2,39 @@
 alias Coordinate: tuple<int,int>
 alias Heatloss: int
 alias HeatLossMap: {Coordinate:Heatloss}
+atom Horizontal 
+atom Vertical
+
+function list2map<T,S>(l:[tuple<T,S>]) -> {T:S}{
+    return {elem[0]:elem[1] | elem in l};
+}
+
+function listMut2mapMut<T,S>(l: mut[tuple<T,S>]) -> mut{T:S}{
+    return mut {elem[0]:elem[1] | elem in l};
+}
+function concat<T>(l: [[T]]) -> [T]{
+    var concatlist: mut[T] = mut [];
+    for (sublist in l){
+        
+        _ = lists::addAll(concatlist,sublist);
+    }
+    return copy(concatlist);
+}
+
+function concatMut<T>(l:  [mut[T]]) -> mut[T]{
+    var concatlist: mut [T] = mut [];
+    for (sublist in l){
+        var sublistImmutable: [T] = copy(sublist);
+        
+        _ = lists::addAll(concatlist,sublistImmutable);
+    }
+    return concatlist;
+}
+function concatMap<T,S>(l:[T], fn:function<T -> [S]>)-> [S]{
+    var mapped = fp::map(l, fn);
+    return concat(mapped);
+
+}
 
 function heatloss(coord: Coordinate, newCoord: Coordinate, hmap: HeatLossMap) -> Heatloss {
     var hloss: int = 0;
@@ -37,35 +70,124 @@ function heatloss(coord: Coordinate, newCoord: Coordinate, hmap: HeatLossMap) ->
     
 
 }
-function reachable(current: struct {coord: Coordinate, from: Coordinate}, hmap: HeatLossMap) -> [tuple<Coordinate,Heatloss>]{
+function reachable(current: struct {coord: Coordinate, from: Coordinate}, hmap: HeatLossMap) -> [tuple<Coordinate,tuple<Heatloss, Coordinate>>]{
     var x = current.coord[0];
     
     var y = current.coord[1];
 
     var xPrev = current.from[0];
 
-    if (x==xPrev){
+    if (x == xPrev){
 
-        return [((xnew, y),heatloss((x,y), (xnew,y), hmap)) | xnew in [x-1, x-2, x-3,x+1, x+2, x+3] where (xnew,y) in hmap];
+        return [((xnew, y),(heatloss((x,y), (xnew,y), hmap), current.coord)) | xnew in [x-1, x-2, x-3,x+1, x+2, x+3] where (xnew, y) in hmap];
     }
     else {
 
-        return [((x, ynew),heatloss((x,y), (x,ynew), hmap)) | ynew in [y-1, y-2, y-3,y+1, y+2, y+3] where (x, ynew) in hmap];
+        return [((x, ynew),(heatloss((x,y), (x,ynew), hmap), current.coord)) | ynew in [y-1, y-2, y-3,y+1, y+2, y+3] where (x, ynew) in hmap];
     }
+
     
 }
 
-# function findShortestPath(startcoord: tuple<int,int>) -> int{
-#     var minCostMap: mut {tuple<int, int>: int} = mut {};
+function verticalOrHorizontal(coord: Coordinate, prev: Coordinate) -> oneof<Horizontal,Vertical>{
+    if (coord[0] == prev[0]){
+        return Horizontal;
+    }
+    else{
+        return Vertical;
+    }
+}
 
-# }
+function addIfAbsent(m:  mut {tuple<Coordinate, Coordinate, oneof<Horizontal, Vertical>>:Heatloss} , e: tuple<tuple<Coordinate, Coordinate, oneof<Horizontal, Vertical>>,Heatloss>)  -> mut {tuple<Coordinate, Coordinate, oneof<Horizontal, Vertical>>:Heatloss} {    m[e[0]] = e[1]; 
+    return m;
+}
+
+function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: HeatLossMap) -> Heatloss {
+    
+    var visited: mut{tuple<Coordinate, oneof<Horizontal, Vertical>>} = sets::emptyMutSet();
+    # from start, we can go anywhere
+    var horizontalStarts = reachable({coord = startcoord,from = (0,-1)},hmap);
+    # assuming start is (0,0)
+    var verticalStarts = reachable({coord = startcoord,from = (-1,0)},hmap);
+    # assuming start is (0,0)
+    var allStarts: mut [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = mut [];
+    
+    _ = lists::addAll(allStarts, horizontalStarts);
+    _ = lists::addAll(allStarts, verticalStarts);
+    #var minCostMap: mut {Coordinate: tuple<Heatloss, Coordinate>} = listMut2mapMut(allStarts);
+    var costMap: mut {tuple<Coordinate, Coordinate, oneof<Horizontal, Vertical>>:Heatloss} = listMut2mapMut(mut [((coord[0], coord[1][1], verticalOrHorizontal(coord[0],coord[1][1])),coord[1][0] )| coord in allStarts]);
+    _ = sets::addAllFromList(visited, [(startcoord,Horizontal),(startcoord,Vertical)]);
+
+    # make  immutable  copy of allStarts
+    # so filter can be used on it
+    var immutableAllStarts : [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = copy(allStarts);
+    var filtertedAllStarts = fp::filter(immutableAllStarts, x -> not ((x[0], verticalOrHorizontal(x[0],x[1][1])) in visited));
+    var nextStarts : mut[tuple<Coordinate,tuple<Heatloss, Coordinate>>] = copy(filtertedAllStarts);
+
+    while (not(lists::isEmptyInMut(nextStarts))){
+        
+    # while allStarts is not empty,
+    # find reachable from each startcoord, concatenate the list
+    # add to the visited Set and minCostMap, then make the reachable list the new allStarts list, filtering out any that were already in visited
+    # for this, first it has to be determined if they were visited horizontally or vertically
+
+        var immutableCopy  : [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = copy(nextStarts);
+        var nextReachable : [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = concatMap(immutableCopy, x -> reachable({coord = x[0], from = x[1][1]},hmap));
+       # maps::putAll(minCostMap,list2map(nextReachable));
+        #print(minCostMap);
+        
+       costMap = fp::reduce( [((coord[0], coord[1][1], verticalOrHorizontal(coord[0],coord[1][1])),coord[1][0] )| coord in nextReachable],  addIfAbsent, costMap);
+    
+        
+        _ = sets::addAllFromList(visited, [(coord[0], verticalOrHorizontal(coord[0],coord[1][1]))| coord in nextStarts]);
+
+
+        var filteredNextReachable = fp::filter(nextReachable, x -> not ((x[0], verticalOrHorizontal(x[0],x[1][1])) in visited));
+       
+        nextStarts = copy(filteredNextReachable);
+
+     }
+
+    print(endcoord);
+    print(costMap);
+    # costMap is not quite the right format for looking up the cost yet
+    # it needs to map the coordinate to a list of coordinates it can be reached from with the associated cost and the direction
+
+
+  
+
+    return 1;
+
+
+
+}
 var exmap = {(0,0):2,
-         (1,0):4,
-         (2,0):1,
-         (3,0):3,
-         (4,0):4,
-         (5,0):3,
-         (6,0):2,
-         (7,0):3};
-var exstruct : struct {coord: Coordinate, from: Coordinate} = {coord = (3,0), from = (3,3)};
-print(reachable(exstruct,exmap));
+             (1,0):4,
+             (2,0):1,
+             (3,0):3,
+             (4,0):4,
+             (5,0):3,
+             (6,0):2,
+             (7,0):3,
+             (8,0):1,
+             (9,0):1,
+             (10,0):3,
+             (11,0):2,
+             (12,0):3,
+             (0,1):3,
+             (1,1):2,
+             (2,1):1,
+             (3,1):5,
+             (4,1):4,
+             (5,1):5,
+             (6,1):3,
+             (7,1):5,
+             (8,1):3,
+             (9,1):5,
+             (10,1):6,
+             (11,1):2,
+             (12,1):3
+            
+             };
+
+print(findShortestPath((0,0), (1,1),exmap));
