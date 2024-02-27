@@ -139,32 +139,35 @@ function findMinCost(coord: Coordinate, direction: oneof<Horizontal, Vertical>, 
 
     }
     else{
-        var possiblePaths:[tuple<oneof<Vertical,Horizontal>,Heatloss>] = [(e[1],e[2] + findMinCost(e[0],flipDirection(e[1]),m,mincostV,mincostH))| e in m[coord]];
+        #print(coord);
+        var heatLossSet = m [coord];
+       # print(heatLossSet);
+        var possiblePaths:[tuple<oneof<Vertical,Horizontal>,Heatloss>] = [(e[1],e[2]+ findMinCost(e[0],flipDirection(e[1]),m,mincostV,mincostH) )| e in heatLossSet];
         # now add those to the mincostV and mincostH maps
-    #    var verticalPaths = fp::filter(possiblePaths,e->e[0] == Vertical);
-    #    var verticalCosts = [e[1] | e in verticalPaths];
-    #    var horizontalPaths = fp::filter(possiblePaths,e->e[0] == Horizontal);
-    #    var horizontalCosts = [e[1] | e in horizontalPaths];
-    #    var minh : Heatloss = fp::reduce(horizontalCosts, min, 0);
-    #    var minv : Heatloss = fp::reduce(verticalCosts,  min, 0);
-    #    mincostH[coord] = minh;
-    #    mincostV[coord] = minv;
-    print(possiblePaths);
-    return 0;
+       # print("possible paths:");
+      #  print(possiblePaths);
+       var verticalPaths = fp::filter(possiblePaths,e->e[0] == Vertical);
+       var verticalCosts = [e[1] | e in verticalPaths];
+       var horizontalPaths = fp::filter(possiblePaths,e->e[0] == Horizontal);
+       var horizontalCosts = [e[1] | e in horizontalPaths];
+       var minh : Heatloss = fp::reduce(horizontalCosts, min, 10000000);
+       var minv : Heatloss = fp::reduce(verticalCosts,  min, 1000000);
+       mincostH[coord] = minh;
+       mincostV[coord] = minv;
+    
+   # print(possiblePaths);
+   # return 0;}
 
-     }
-    # if (direction == Horizontal){
-    #      return mincostH[coord];
+    }
+    if (direction == Horizontal){
+         return mincostH[coord];
 
-    # }
-    # else{
-    #      return mincostV[coord];
-    # }
+    }
+    else{
+         return mincostV[coord];
+    }
 }
-function const1 (i: int) -> int {
-    print(i);
-    return 1;
-}
+
 function flipDirection(direction: oneof<Horizontal,Vertical>)->oneof<Horizontal,Vertical>{
     if (direction == Horizontal){
         return Vertical;
@@ -186,12 +189,10 @@ function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: He
     
     _ = lists::addAll(allStarts, horizontalStarts);
     _ = lists::addAll(allStarts, verticalStarts);
-    #var minCostMap: mut {Coordinate: tuple<Heatloss, Coordinate>} = listMut2mapMut(allStarts);
-    #var costMap: mut {tuple<Coordinate, Coordinate, oneof<Horizontal, Vertical>>:Heatloss} = listMut2mapMut(mut [((coord[0], coord[1][1], verticalOrHorizontal(coord[0],coord[1][1])),coord[1][0] )| coord in allStarts]);
+    
     var costMap: mut {Coordinate: mut{tuple<Coordinate, oneof<Horizontal, Vertical>,Heatloss>} } = listMut2mapMut(mut [(coord[0], mut{(coord[1][1], verticalOrHorizontal(coord[0],coord[1][1]),coord[1][0] ),(coord[1][1], verticalOrHorizontal(coord[0],coord[1][1]),coord[1][0] )})| coord in allStarts]);
     
-  # var setInList : [{int}] = [{a,a}| a in [1,2,3]];
-   #print(setInList);
+  
   
     _ = sets::addAllFromList(visited, [(startcoord,Horizontal),(startcoord,Vertical)]);
 
@@ -226,17 +227,28 @@ function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: He
 
      }
 
-    print(endcoord);
-    print(costMap);
+    #print(endcoord);
+    #print(costMap);
     
     # costMap is not quite the right format for looking up the cost yet
     # it needs to map the coordinate to a lset of coordinates it can be reached from with the associated cost and the direction
 
 
-  
+    #print(costMap);
+    var minCostHorizontal = findMinCost(endcoord, Horizontal,costMap,mut{},mut{});
+    #print(minCostHorizontal);
+    var minCostVertical = findMinCost(endcoord, Vertical,costMap,mut{},mut{});
+    #print(minCostVertical);
+    if (minCostHorizontal == 0){
+        return minCostVertical;
 
-    return 1;
-
+    }
+    else if (minCostVertical == 0){
+        return minCostHorizontal;
+    }
+    else{
+        return min(minCostHorizontal,minCostVertical);
+    }
 
 
 }
@@ -268,5 +280,11 @@ var exmap = {(0,0):2,
              (12,1):3
             
              };
+var exmapSmall = {(0,0):2,
+             (1,0):4,
+            
+             (1,1):2
 
-print(findShortestPath((0,0), (1,1),exmap));
+             };
+print(exmap);
+print(findShortestPath((0,0), (1,1),exmapSmall));
