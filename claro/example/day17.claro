@@ -126,7 +126,7 @@ function min(i:int, j:int) -> int{
     }
 }
 
-function findMinCost(coord: Coordinate, direction: oneof<Horizontal, Vertical>, m : mut {Coordinate: mut{tuple<Coordinate, oneof<Horizontal, Vertical>,Heatloss>} }, mincostV : mut {Coordinate :  Heatloss} , mincostH : mut {Coordinate :  Heatloss}) -> Heatloss{
+function findMinCost(coord: Coordinate, direction: oneof<Horizontal, Vertical>, m : mut {Coordinate: mut{tuple<Coordinate, oneof<Horizontal, Vertical>,Heatloss>} }, mincostV : mut {Coordinate :  Heatloss} , mincostH : mut {Coordinate :  Heatloss}, visited: mut{Coordinate}) -> Heatloss{
     if (coord == (0,0)){
         return 0;
     }
@@ -139,24 +139,69 @@ function findMinCost(coord: Coordinate, direction: oneof<Horizontal, Vertical>, 
 
     }
     else{
-        #print(coord);
+        
+        _ = sets::add(visited,coord);
+        print("visited");
+        print(visited);
         var heatLossSet = m [coord];
-       # print(heatLossSet);
-        var possiblePaths:[tuple<oneof<Vertical,Horizontal>,Heatloss>] = [(e[1],e[2]+ findMinCost(e[0],flipDirection(e[1]),m,mincostV,mincostH) )| e in heatLossSet];
+        print("from coordinate:");
+        print(coord);
+        print(heatLossSet);
+        var heatLossList = [elem | elem in heatLossSet ];
+        
+        var heatLossH = fp::filter(heatLossList,  elem -> elem[1]==Horizontal);
+        var heatLossV = fp::filter(heatLossList,  elem -> elem[1]==Vertical);
+        print(heatLossH);
+        print(heatLossV);
+        var verticalCosts:mut[Heatloss] = mut [];
+        var horizontalCosts:mut[Heatloss] = mut [];
+        for (elemV in heatLossV){
+            
+            if (not(elemV[0] in visited)){
+                lists::add(verticalCosts, elemV[2]+ findMinCost(elemV[0],flipDirection(elemV[1]),m,mincostV,mincostH, copy(visited)));
+                var verticalCostsImm : [Heatloss] = copy(verticalCosts);
+                verticalCosts = copy(fp::filter(verticalCostsImm,  elem -> elem<1000000));
+
+            }
+           
+
+        }
+        for (elemH in heatLossH){
+            
+            if (not(elemH[0] in visited)){
+                lists::add(horizontalCosts, elemH[2]+ findMinCost(elemH[0],flipDirection(elemH[1]),m,mincostV,mincostH, copy(visited)));
+                var horizonalCostsImm : [Heatloss] = copy(horizontalCosts);
+                horizontalCosts = copy(fp::filter(horizonalCostsImm,  elem -> elem<1000000));
+
+            }
+           
+
+        }
+      
+        # var possiblePaths:[tuple<oneof<Vertical,Horizontal>,Heatloss>] = [(e[1],e[2]+ findMinCost(e[0],flipDirection(e[1]),m,mincostV,mincostH, copy(visited)) )| e in heatLossSet where not(e[0] in visited)];
         # now add those to the mincostV and mincostH maps
-       # print("possible paths:");
-      #  print(possiblePaths);
-       var verticalPaths = fp::filter(possiblePaths,e->e[0] == Vertical);
-       var verticalCosts = [e[1] | e in verticalPaths];
-       var horizontalPaths = fp::filter(possiblePaths,e->e[0] == Horizontal);
-       var horizontalCosts = [e[1] | e in horizontalPaths];
-       var minh : Heatloss = fp::reduce(horizontalCosts, min, 10000000);
-       var minv : Heatloss = fp::reduce(verticalCosts,  min, 1000000);
-       mincostH[coord] = minh;
+       #print("possible paths:");
+       #print(possiblePaths);
+    #    var verticalPaths = fp::filter(possiblePaths,e->e[0] == Vertical);
+    #    var verticalCosts = [e[1] | e in verticalPaths];
+    #    var horizontalPaths = fp::filter(possiblePaths,e->e[0] == Horizontal);
+    #    var horizontalCosts = [e[1] | e in horizontalPaths];
+       print ("horizontalCosts:");
+       print(horizontalCosts);
+       print("verticalCosts:");
+       print(verticalCosts);
+       var verticalCostsImmutable :[Heatloss] = copy(verticalCosts);
+       var horizontalCostsImmutable :[Heatloss] = copy(horizontalCosts);
+       var minh : Heatloss = fp::reduce(horizontalCostsImmutable, min, 10000000);
+       # this is not really satisfying, as the minimum could in theory be higher 
+       var minv : Heatloss = fp::reduce(verticalCostsImmutable,  min, 1000000);
+       
+        mincostH[coord] = minh;
+        
        mincostV[coord] = minv;
-    
-   # print(possiblePaths);
-   # return 0;}
+
+       
+
 
     }
     if (direction == Horizontal){
@@ -211,10 +256,7 @@ function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: He
 
         var immutableCopy  : [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = copy(nextStarts);
         var nextReachable : [tuple<Coordinate,tuple<Heatloss, Coordinate>>] = concatMap(immutableCopy, x -> reachable({coord = x[0], from = x[1][1]},hmap));
-       # maps::putAll(minCostMap,list2map(nextReachable));
-        #print(minCostMap);
-        
-       #costMap = fp::reduce( [((coord[0], coord[1][1], verticalOrHorizontal(coord[0],coord[1][1])),coord[1][0] )| coord in nextReachable],  addIfAbsent, costMap);
+     
        costMap = fp::reduce(  nextReachable,  add2ValueSet, costMap);
     
         
@@ -227,17 +269,13 @@ function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: He
 
      }
 
-    #print(endcoord);
-    #print(costMap);
-    
+   
     # costMap is not quite the right format for looking up the cost yet
     # it needs to map the coordinate to a lset of coordinates it can be reached from with the associated cost and the direction
 
-
-    #print(costMap);
-    var minCostHorizontal = findMinCost(endcoord, Horizontal,costMap,mut{},mut{});
-    #print(minCostHorizontal);
-    var minCostVertical = findMinCost(endcoord, Vertical,costMap,mut{},mut{});
+    var minCostHorizontal = findMinCost(endcoord, Horizontal,costMap,mut{},mut{},sets::emptyMutSet());
+  
+    var minCostVertical = findMinCost(endcoord, Vertical,costMap,mut{},mut{},sets::emptyMutSet());
     #print(minCostVertical);
     if (minCostHorizontal == 0){
         return minCostVertical;
@@ -251,6 +289,28 @@ function findShortestPath(startcoord: Coordinate, endcoord: Coordinate, hmap: He
     }
 
 
+}
+function addCoordinates(ls: [string]) -> {Coordinate: Heatloss}{
+   
+    var y = 0;
+    var coordIntMap : mut{Coordinate: int} = mut{};
+    
+    for (line in ls){
+        var x = 0;
+        for (c in strings::splitChars(line)){
+            var i = ints::parseInt(strings::fromChar(c));
+            var heat = 0;
+            if (i instanceof int){
+                heat = i;
+                
+            }
+            coordIntMap[(x,y)] = heat;
+            x = x + 1;
+        }
+        y = y + 1;
+
+    }
+    return copy(coordIntMap);
 }
 var exmap = {(0,0):2,
              (1,0):4,
@@ -282,9 +342,16 @@ var exmap = {(0,0):2,
              };
 var exmapSmall = {(0,0):2,
              (1,0):4,
-            
+            (0,1):3,
              (1,1):2
 
              };
-print(exmap);
-print(findShortestPath((0,0), (1,1),exmapSmall));
+
+print(exmapSmall);
+print(findShortestPath((0,0), (1,1),exmap));
+resources::Example
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n")
+  |> addCoordinates(^)
+  |> findShortestPath((0,0), (12,12),^)
+  |> print(^);
