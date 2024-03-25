@@ -27,7 +27,24 @@ claro_binary(
      resources={"Input": "day13.txt"},
    
 )
-
+claro_binary(
+    name="day17",
+    main_file="day17.claro",
+    resources={"Example": "Day17Ex.txt"},
+   
+)
+claro_binary(
+    name="recursion",
+    main_file="recursion.claro",
+   
+   
+)
+claro_binary(
+    name="hello_concurrent",
+    main_file="hello_concurrent.claro",
+   
+   
+)
 claro_binary(
     name="monoids",
     main_file="monoids.claro",

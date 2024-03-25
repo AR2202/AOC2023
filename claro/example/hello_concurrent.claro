@@ -1,0 +1,11 @@
+
+graph function helloConcurrent(hello: string) -> future<string> {
+    root mergedStr <- jstr(@world, @claro);
+    node world <- jstr(hello, "world");
+    node claro <- jstr( hello,"claro");
+    }
+function jstr(s1:string, s2:string)->string{
+    return strings::join(",",[s1, s2]);
+}
+var resultstr : string <-|helloConcurrent("hello");
+print(resultstr);
