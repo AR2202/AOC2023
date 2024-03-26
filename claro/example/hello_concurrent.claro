@@ -7,5 +7,9 @@ graph function helloConcurrent(hello: string) -> future<string> {
 function jstr(s1:string, s2:string)->string{
     return strings::join(",",[s1, s2]);
 }
-var resultstr : string <-|helloConcurrent("hello");
+var graphRes: future<string> = helloConcurrent("hello");
+
+print("this might be executed before the graph procedure");
+var resultstr : string <-|graphRes;
 print(resultstr);
+print("but this is executed after the graph procedure");
