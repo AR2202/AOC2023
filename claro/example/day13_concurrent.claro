@@ -204,7 +204,10 @@ function sumReflectionLines(patterns:[[string]]) -> int{
 function listSum(l:[int])-> int{
     return fp::reduce(l, lambda (accum, x) -> accum + x, 0 );
 }
-
+function listSumFuture(fs:[future<int>])-> int{
+    var l : [int] <-| futures::allAsList(fs);
+    return fp::reduce(l, lambda (accum, x) -> accum + x, 0 );
+}
 
 function sumRepairedReflectionLines(patterns:[[string]]) -> int{
     var patternSum = 0;
@@ -215,16 +218,32 @@ function sumRepairedReflectionLines(patterns:[[string]]) -> int{
     return patternSum;
 }
 # this section runs the solution to both parts concurrently
+# the provider for part 1
+function part1ResProvider(pattern:[string]) -> provider<int>{
+    return () -> findReflectionLine(makePattern(pattern));
+}
 
+# the provider for part 2
+function part2ResProvider(pattern:[string]) -> provider<int>{
+    return () -> findRepairedReflectionLine(makePattern(pattern));
+}
+# provider higher-order
+function resProvider(pattern:[string], fn:function<{int: string} -> int>) -> provider<int>{
+    return () -> fn(makePattern(pattern));
+}
+# calling graph result
 function evalGraphRes<T>(graphRes:future<T>)-> T{
     var res : T <-|graphRes;
     return res;
 }
+
 graph function solveBothConcurrently(inputs:[string]) -> future<[int]> {
     root listResults <- [@part1, @part2];
-    node part1 <- sumReflectionLines(@pattern);
-    node part2 <- sumRepairedReflectionLines(@pattern);
-    node pattern <- mapSplitLines(inputs);
+    node part1 <- listSumFuture(@part1list);
+    node part2 <- listSumFuture(@part2list);
+    node part1list <- futures::invokeAll([resProvider(pattern,findReflectionLine) | pattern in @patterns]);
+    node part2list <- futures::invokeAll([resProvider(pattern, findRepairedReflectionLine) | pattern in @patterns]);
+    node patterns <- mapSplitLines(inputs);
 }
 
 
@@ -246,7 +265,7 @@ resources::Input
   |> sumRepairedReflectionLines(^)
   |> print(^);
 
-# concurrent
+# concurrently
 print("Day 13 concurrently");
 resources::Input
   |> files::readOrPanic(^)
