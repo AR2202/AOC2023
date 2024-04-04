@@ -28,6 +28,12 @@ claro_binary(
    
 )
 claro_binary(
+    name="day13c",
+    main_file="day13_concurrent.claro",
+     resources={"Input": "day13.txt"},
+   
+)
+claro_binary(
     name="day17",
     main_file="day17.claro",
     resources={"Example": "Day17Ex.txt"},

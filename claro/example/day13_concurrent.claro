@@ -1,0 +1,256 @@
+
+function listFromRange(startval:int, endval:int) -> [int]{
+    var l: mut[int] = mut [];
+    
+    while (endval >= startval){
+        lists::add(l, startval);
+        startval ++;
+
+    }
+    var immutableL: [int] = copy(l);
+    return immutableL;
+}
+
+function reverseMut<T>(l: mut [T]) -> mut [T]{
+    var reversed: mut [T] = mut [];
+    for (i in listFromRange(1, len(l))){
+        
+        var elem = l[len(l) - i];
+        lists::add(reversed, elem);
+    }
+    return reversed;
+}
+
+# reverse a list
+function reverse<T>(l: [T]) -> [T]{
+    var reversed: mut [T] = mut [];
+    for (i in listFromRange(1, len(l))){
+        
+        var elem = l[len(l) - i];
+        lists::add(reversed, elem);
+    }
+    var immutableReversed: [T] = copy(reversed);
+    return immutableReversed;
+}
+
+# transpose a list of lists
+function transpose<T>(listOfLists: [[T]]) -> [[T]]{
+    
+    var transposed = [[s[n] | s in listOfLists]|n in listFromRange(0, len(listOfLists[0]) - 1)];
+
+    return transposed;
+
+}
+
+# transposes a list of strings
+function transposeStrings(strs:[string]) -> [string]{
+    var charlists: [[char]] = [strings::splitChars(s) | s in strs];
+    var transposed = transpose(charlists);
+    var char2str: function<char -> string> = x -> strings::fromChar(x);
+    var transposedAsStr : [[string]] = [fp::map(l, char2str) | l in transposed];
+    var transposedStrs = [strings::join("", cs) | cs in transposedAsStr];
+   
+    return transposedStrs;
+
+}
+
+function mapSplitLines(strs: [string]) -> [[string]]{
+    return [strings::split(ls, "\n")|ls in strs];
+}
+
+function makePattern(patternlines: [string]) -> {int:string}{
+    return {n:patternlines[n-1]|n in listFromRange(1, len(patternlines))};
+}
+
+function findHorizontalReflectionLine(pattern: {int:string})->int{
+    var testline = 1;
+    var template = 1;
+    var toCompare = 2;
+
+    while ((template in pattern) and (toCompare in pattern)) {
+        if ((pattern[template] == pattern[toCompare])){
+
+            toCompare ++;
+            template --;
+            }
+            
+        else {
+                testline ++;
+                template = testline;
+                toCompare = template + 1;
+            }
+    }
+               
+        
+        if ((testline + 1) in pattern){
+            return testline;
+            
+        }
+        else {
+            return 0;
+        }
+    }
+
+function fixSmudge(pattern: {int:string})->int{
+    var testline = 1;
+    var template = 1;
+    var toCompare = 2;
+    var repaired = false;
+    
+    
+
+    while (((template in pattern) and (toCompare in pattern)) or (not ( repaired) and ((testline + 1) in pattern ))) {
+        if (not((template in pattern) and (toCompare in pattern))){
+                testline ++;
+                template = testline;
+                toCompare = template + 1;
+                repaired = false;
+        }
+        else if ((pattern[template] == pattern[toCompare])){
+
+            toCompare ++;
+            template --;
+            }
+            
+        else if (repaired){
+                testline ++;
+                template = testline;
+                toCompare = template + 1;
+                repaired = false;
+            }
+        else {
+            var templateChars = 
+            strings::splitChars(pattern[template]);
+            var toCompareChars = strings::splitChars(pattern[toCompare]);
+            for (i in listFromRange(0, len(templateChars) - 1)){
+                if (templateChars[i] != toCompareChars[i]){
+                    if (repaired){
+                        testline ++;
+                        template = testline + 1;
+                        toCompare = testline;
+                        repaired = false;
+
+                       
+                        break;
+                    }
+                    else {
+                        repaired = true;
+                       
+                    }
+
+                }
+
+            }
+            toCompare ++;
+            template --;
+    
+        }
+    }
+        if (repaired and ((testline + 1) in pattern)){
+            return testline;
+            
+        }        
+        else {
+            return 0;
+        }
+    }
+
+function findReflectionLine(pattern:{int:string}) -> int{
+    var horizontalReflection = findHorizontalReflectionLine(pattern);
+    if (horizontalReflection == 0){
+        pattern
+            |> [val[1] |val in maps::entrySet(^)]
+            |> transposeStrings(^)
+            |> makePattern(^)
+            |> findHorizontalReflectionLine(^)
+            |> var verticalLine = ^;
+        
+        return verticalLine;
+
+    }
+    else {
+        return 100 * horizontalReflection;
+    }
+}
+
+function findRepairedReflectionLine(pattern:{int:string}) -> int{
+    
+    var horizontalReflection = fixSmudge(pattern);
+    if (horizontalReflection == 0){
+        pattern
+            |> [val[1] |val in maps::entrySet(^)]
+            |> transposeStrings(^)
+            |> makePattern(^)
+            |> fixSmudge(^)
+            |> var verticalLine = ^;
+        
+        return verticalLine;
+
+    }
+    else {
+        return 100 * horizontalReflection;
+    }
+}
+
+function sumReflectionLines(patterns:[[string]]) -> int{
+    var patternSum = 0;
+    for (pattern in patterns){     
+        patternSum = patternSum + findReflectionLine(makePattern(pattern));
+       
+    }
+    return patternSum;
+}
+
+function listSum(l:[int])-> int{
+    return fp::reduce(l, lambda (accum, x) -> accum + x, 0 );
+}
+
+
+function sumRepairedReflectionLines(patterns:[[string]]) -> int{
+    var patternSum = 0;
+    for (pattern in patterns){     
+        patternSum = patternSum + findRepairedReflectionLine(makePattern(pattern));
+       
+    }
+    return patternSum;
+}
+# this section runs the solution to both parts concurrently
+
+function evalGraphRes<T>(graphRes:future<T>)-> T{
+    var res : T <-|graphRes;
+    return res;
+}
+graph function solveBothConcurrently(inputs:[string]) -> future<[int]> {
+    root listResults <- [@part1, @part2];
+    node part1 <- sumReflectionLines(@pattern);
+    node part2 <- sumRepairedReflectionLines(@pattern);
+    node pattern <- mapSplitLines(inputs);
+}
+
+
+# Solution
+print("Day 13 Part 1:");
+
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n\n")
+  |> mapSplitLines(^)
+  |> sumReflectionLines(^)
+  |> print(^);
+
+print("Day 13 Part 2:");
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n\n")
+  |> mapSplitLines(^)
+  |> sumRepairedReflectionLines(^)
+  |> print(^);
+
+# concurrent
+print("Day 13 concurrently");
+resources::Input
+  |> files::readOrPanic(^)
+  |> strings::split(^, "\n\n")
+  |> solveBothConcurrently(^)
+  |> evalGraphRes(^)
+  |> print(^);
